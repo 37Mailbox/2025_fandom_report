@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2025 追星年度报告 </title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --primary: #2b2d42; 
+            --accent: #8d99ae;
+            --highlight: #ef233c; 
+            --paper-color: #fcfbf7;
+            --font-serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "SimSun", serif;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- 编辑区 --- */
+        .editor-panel {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            box-sizing: border-box;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+
+        h2 { 
+            border-left: 4px solid var(--primary); 
+            padding-left: 10px; 
+            font-size: 20px; 
+            color: var(--primary); 
+            margin: 10px 0 20px 0; 
+        }
+        
+        h3 { 
+            font-size: 16px; 
+            margin-top: 30px; 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 8px; 
+            color: #333; 
+            font-weight: bold;
+        }
+
+        .input-group { 
+            margin-bottom: 15px; 
+            border: 1px solid #eee; 
+            padding: 15px; 
+            border-radius: 10px; 
+            background: #fff;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        
+        label { 
+            font-size: 14px; 
+            font-weight: bold; 
+            color: #666; 
+            display: block; 
+            margin-bottom: 6px; 
+            margin-top: 10px;
+        }
+        label:first-child { margin-top: 0; }
+        
+        input, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            margin-bottom: 5px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+            background: #fafafa;
+        }
+        textarea { resize: none; height: 60px; }
+        
+        .date-range-row { display: flex; gap: 10px; align-items: center; }
+        .date-range-row input { flex: 1; }
+        
+        .btn-del { 
+            position: absolute; 
+            right: 15px; 
+            top: 15px; 
+            color: #ff4757; 
+            font-size: 14px; 
+            padding: 5px;
+        }
+        
+        .btn-add { 
+            width: 100%; 
+            padding: 12px; 
+            background: white; 
+            border: 1px dashed var(--accent); 
+            color: var(--accent); 
+            font-size: 14px;
+            border-radius: 8px; 
+            margin-top: 5px; 
+        }
+
+        /* --- 底部悬浮生成按钮 --- */
+        .fixed-footer-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 550px;
+            z-index: 100;
+        }
+
+        .btn-save { 
+            width: 100%; 
+            padding: 16px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            font-size: 18px; 
+            box-shadow: 0 5px 20px rgba(43, 45, 66, 0.4); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-save:active { transform: scale(0.98); }
+
+        /* --- 隐藏的预览区 --- */
+        .preview-area { 
+            position: fixed;
+            top: 0;
+            left: -9999px;
+            width: 550px;
+            height: auto;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        #final-card {
+            width: 550px;
+            background: white;
+            min-height: 800px;
+            padding: 50px 40px;
+            box-sizing: border-box;
+            color: #333;
+            background-color: #fff; 
+        }
+
+        /* 标题区 */
+        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #000; padding-bottom: 30px; }
+        .header h1 { font-size: 36px; margin: 0; letter-spacing: -1px; text-transform: uppercase; }
+        .header .sub-info { margin-top: 10px; font-size: 14px; color: #666; display: flex; justify-content: center; gap: 20px; font-weight: bold; }
+        .dynamic-quote { margin-top: 20px; font-family: var(--font-serif); font-size: 18px; color: var(--primary); font-style: italic; background: #f4f4f4; display: inline-block; padding: 8px 20px; border-radius: 20px; }
+
+        .section-head { font-size: 16px; font-weight: 900; letter-spacing: 2px; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 25px; margin-top: 45px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .section-head span { font-size: 12px; font-weight: normal; color: #888; }
+
+        /* 1. 情绪瞬间 (16:9) */
+        .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .mood-item { display: flex; flex-direction: column; }
+        .mood-tag { font-size: 10px; font-weight: bold; background: #000; color: #fff; padding: 2px 6px; align-self: flex-start; margin-bottom: 5px; text-transform: uppercase; }
+        .mood-tag.happy { background: #ffbe0b; color:black; }
+        .mood-tag.moved { background: #ff9a9e; color:white;}
+        .mood-tag.sad { background: #8338ec; color:white; }
+        .mood-tag.dumb { background: #3a86ff; color:white;}
+        
+        .mood-img { 
+            width: 100%; 
+            aspect-ratio: 16/9;   /* 强制 16:9 */
+            object-fit: cover;    /* 关键：裁切不拉伸 */
+            border-radius: 4px; 
+            margin-bottom: 5px; 
+            display: none; 
+        }
+        .mood-text { font-size: 13px; line-height: 1.4; color: #444; min-height: 20px; border-left: 2px solid #eee; padding-left: 8px;}
+
+        /* 2. 线下行程 (16:9) */
+        .timeline-container { border-left: 2px solid #e0e0e0; margin-left: 10px; padding-left: 25px; display: flex; flex-direction: column; gap: 30px; }
+        .event-item { position: relative; }
+        .event-item::before { content: ''; position: absolute; left: -32px; top: 6px; width: 10px; height: 10px; background: #fff; border: 2px solid #000; border-radius: 50%; z-index: 1; }
+        .event-item.is-range::before { background: #000; border-color: #000; height: 100%; width: 4px; left: -29px; top: 8px; border-radius: 2px; }
+        
+        .event-date { font-family: 'Helvetica Neue', monospace; font-size: 14px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+        .event-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+        .event-desc { font-size: 13px; color: #555; margin-bottom: 8px; line-height: 1.5; }
+        
+        .event-img { 
+            width: 100%; 
+            aspect-ratio: 16/9; /* 强制 16:9 */
+            object-fit: cover;  /* 关键：裁切不拉伸 */
+            border-radius: 6px; 
+            display: none; 
+            margin-top: 5px; 
+        }
+
+        /* 3. 我的产出 (保持自适应，不改) */
+        .works-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .work-item { break-inside: avoid; background: #f9f9f9; padding: 10px; border-radius: 6px; }
+        
+        .work-img { 
+            width: 100%; 
+            height: auto;     /* 自适应高度，不强求比例 */
+            border-radius: 4px; 
+            margin-bottom: 8px; 
+            display: none; 
+        }
+        
+        .work-title { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+        .work-desc { font-size: 12px; color: #666; }
+        .work-text-card { background: var(--paper-color); box-shadow: 1px 1px 3px rgba(0,0,0,0.05), inset 0 0 20px rgba(0,0,0,0.02); padding: 18px 15px; font-family: var(--font-serif); font-size: 13px; line-height: 1.85; letter-spacing: 0.05em; color: #2c2c2c; white-space: pre-wrap; max-height: 220px; overflow: hidden; margin-bottom: 8px; position: relative; text-align: justify; border-radius: 2px; }
+        .work-text-card::after { content: "❝"; position: absolute; top: -5px; right: 8px; font-size: 40px; color: rgba(0,0,0,0.06); font-family: Georgia, serif; }
+        .work-text-card-line { width: 30px; height: 2px; background: var(--highlight); margin-bottom: 10px; opacity: 0.5; }
+
+        /* 4. 周边购入 (16:9 缩略图) */
+        .merch-list { display: flex; flex-direction: column; gap: 10px; }
+        .merch-item { display: flex; align-items: center; gap: 15px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+        
+        .merch-img { 
+            width: 100px;       /* 增加宽度 */
+            aspect-ratio: 16/9; /* 强制 16:9 */
+            object-fit: cover;  /* 关键：裁切不拉伸 */
+            border-radius: 4px; 
+            background: #eee; 
+            display: none; 
+            flex-shrink: 0;
+        }
+        
+        .merch-info { flex: 1; }
+        .merch-name { font-weight: bold; font-size: 14px; }
+        .merch-comment { font-size: 12px; color: #666; margin-top: 2px; }
+
+        .footer { margin-top: 60px; text-align: center; font-size: 12px; color: #aaa; letter-spacing: 3px; padding-bottom: 20px; }
+
+        /* --- 生成结果展示弹窗 --- */
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+        
+        #result-modal img {
+            max-width: 90%;
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .modal-tip {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .btn-close {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1001;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Loading动画 */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top:0; left:0; right:0; bottom:0;
+            background: rgba(255,255,255,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            color: var(--primary);
+            font-weight: bold;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 编辑区 -->
+    <div class="editor-panel">
+        <h2>🛠️ 2025 追星总结（没有的分区可以留空，生成的长图中不显示）</h2>
+        
+        <div class="input-group">
+            <label>我的昵称</label>
+            <input type="text" id="in-name" placeholder="Name" oninput="renderAll()">
+        </div>
+        <div class="input-group">
+            <label>本命</label>
+            <input type="text" id="in-idol" placeholder="Idol Name" oninput="renderAll()">
+        </div>
+
+        <h3>📅 线下行程 (图需上传16:9，下同)</h3>
+        <div id="container-events"></div>
+        <button class="btn-add" onclick="addEventInput()">+ 添加行程</button>
+
+        <h3>🎨 我的产出 （图片原比例即可）</h3>
+        <div id="container-works"></div>
+        <button class="btn-add" onclick="addWorkInput()">+ 添加产出</button>
+
+        <h3>🛍️ 周边购入 (图 16:9)</h3>
+        <div id="container-merch"></div>
+        <button class="btn-add" onclick="addMerchInput()">+ 添加周边</button>
+
+        <h3>💭 情绪瞬间 (图 16:9)</h3>
+        <div class="input-group"><label>😄 最快乐</label><input type="text" id="mood-happy-txt" placeholder="快乐瞬间" oninput="renderAll()"><input type="file" id="mood-happy-img" accept="image/*" onchange="handleFile(this, 'mood-happy-data')"></div>
+        <div class="input-group"><label>🥺 最感动</label><input type="text" id="mood-moved-txt" oninput="renderAll()"><input type="file" id="mood-moved-img" accept="image/*" onchange="handleFile(this, 'mood-moved-data')"></div>
+        <div class="input-group"><label>💔 最心碎</label><input type="text" id="mood-sad-txt" oninput="renderAll()"><input type="file" id="mood-sad-img" accept="image/*" onchange="handleFile(this, 'mood-sad-data')"></div>
+        <div class="input-group"><label>😑 最无语</label><input type="text" id="mood-dumb-txt" oninput="renderAll()"><input type="file" id="mood-dumb-img" accept="image/*" onchange="handleFile(this, 'mood-dumb-data')"></div>
+    </div>
+
+    <!-- 悬浮按钮 -->
+    <div class="fixed-footer-btn">
+        <button class="btn-save" onclick="generateAndShow()">
+            <span>✨ 生成长图</span>
+        </button>
+    </div>
+
+    <!-- 隐藏的预览区 -->
+    <div class="preview-area">
+        <div id="final-card">
+            <div class="header">
+                <h1>2025 追星总结</h1>
+                <div class="sub-info">
+                    <span>RECORD BY: <span id="out-name">---</span></span>
+                    <span>FOCUS: <span id="out-idol">---</span></span>
+                </div>
+                <div id="out-quote" class="dynamic-quote">遥远的爱是最安静的陪伴</div>
+            </div>
+            <div id="section-events" style="display:none;">
+                <div class="section-head">OFFLINE EVENTS <span>线下行程</span></div>
+                <div class="timeline-container" id="out-events"></div>
+            </div>
+            <div class="section-head">EMOTIONAL MOMENTS <span>情绪瞬间</span></div>
+            <div class="mood-grid">
+                <div class="mood-item"><span class="mood-tag happy">Happy</span><img id="out-mood-happy-img" class="mood-img"><div id="out-mood-happy-txt" class="mood-text"></div></div>
+                <div class="mood-item"><span class="mood-tag moved">Touched</span><img id="out-mood-moved-img" class="mood-img"><div id="out-mood-moved-txt" class="mood-text"></div></div>
+                <div class="mood-item"><span class="mood-tag sad">Heartbroken</span><img id="out-mood-sad-img" class="mood-img"><div id="out-mood-sad-txt" class="mood-text"></div></div>
+                <div class="mood-item"><span class="mood-tag dumb">Speechless</span><img id="out-mood-dumb-img" class="mood-img"><div id="out-mood-dumb-txt" class="mood-text"></div></div>
+            </div>
+            <div id="section-works" style="display:none;">
+                <div class="section-head">CREATIONS <span>为爱产出</span></div>
+                <div class="works-grid" id="out-works"></div>
+            </div>
+            <div id="section-merch" style="display:none;">
+                <div class="section-head">COLLECTIONS <span>周边购入</span></div>
+                <div class="merch-list" id="out-merch"></div>
+            </div>
+            <div class="footer">KEEP LOVING, KEEP GOING.<br>GENERATED ON <script>document.write(new Date().getFullYear())</script></div>
+        </div>
+    </div>
+
+    <!-- 结果展示 Modal -->
+    <div id="result-modal">
+        <button class="btn-close" onclick="closeModal()">×</button>
+        <div class="modal-tip">长按图片保存到相册 ⬇️</div>
+        <div id="modal-img-container" style="display:flex; flex-direction:column; align-items:center; width:100%;"></div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading-overlay">
+        <div style="font-size:30px; margin-bottom:10px;">🎨</div>
+        <div>正在生成图片...</div>
+    </div>
+
+    <script>
+        const imageData = { 'mood-happy-data': null, 'mood-moved-data': null, 'mood-sad-data': null, 'mood-dumb-data': null };
+        let ids = { event: 0, work: 0, merch: 0 };
+
+        function handleFile(input, key) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imageData[key] = e.target.result;
+                    renderAll();
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // 添加行程
+        function addEventInput() {
+            ids.event++;
+            const id = ids.event;
+            const html = `
+                <div class="input-group" id="in-event-${id}">
+                    <div class="btn-del" onclick="removeEl('in-event-${id}'); renderAll();">删除</div>
+                    <label>日期 (支持多日)</label>
+                    <div class="date-range-row">
+                        <input type="date" class="ev-date-start" onchange="renderAll()">
+                        <span>至</span>
+                        <input type="date" class="ev-date-end" onchange="renderAll()">
+                    </div>
+                    <label>活动名称</label>
+                    <input type="text" class="ev-title" placeholder="演唱会 D1" oninput="renderAll()">
+                    <label>感想</label>
+                    <textarea class="ev-desc" placeholder="写点什么..." oninput="renderAll()"></textarea>
+                    <label>配图</label>
+                    <input type="file" accept="image/*" onchange="handleFile(this, 'event-img-${id}')">
+                </div>
+            `;
+            document.getElementById('container-events').insertAdjacentHTML('beforeend', html);
+        }
+
+        // 添加产出
+        function addWorkInput() {
+            ids.work++;
+            const id = ids.work;
+            const html = `
+                <div class="input-group" id="in-work-${id}">
+                    <div class="btn-del" onclick="removeEl('in-work-${id}'); renderAll();">删除</div>
+                    <label>标题</label><input type="text" class="wk-title" placeholder="《标题》" oninput="renderAll()">
+                    <label>同人文摘录</label><textarea class="wk-content" style="height:80px;" placeholder="粘贴精彩片段..." oninput="renderAll()"></textarea>
+                    <label>备注</label><textarea class="wk-desc" style="height:40px;" placeholder="2k字 / HE" oninput="renderAll()"></textarea>
+                    <label>或上传图片</label><input type="file" accept="image/*" onchange="handleFile(this, 'work-img-${id}')">
+                </div>
+            `;
+            document.getElementById('container-works').insertAdjacentHTML('beforeend', html);
+        }
+
+        // 添加周边
+        function addMerchInput() {
+            ids.merch++;
+            const id = ids.merch;
+            const html = `
+                <div class="input-group" id="in-merch-${id}">
+                    <div class="btn-del" onclick="removeEl('in-merch-${id}'); renderAll();">删除</div>
+                    <label>名称</label><input type="text" class="mc-name" oninput="renderAll()">
+                    <label>备注</label><input type="text" class="mc-desc" oninput="renderAll()">
+                    <label>图片</label><input type="file" accept="image/*" onchange="handleFile(this, 'merch-img-${id}')">
+                </div>
+            `;
+            document.getElementById('container-merch').insertAdjacentHTML('beforeend', html);
+        }
+
+        function removeEl(id) { document.getElementById(id).remove(); }
+
+        function renderAll() {
+            document.getElementById('out-name').innerText = document.getElementById('in-name').value || '---';
+            document.getElementById('out-idol').innerText = document.getElementById('in-idol').value || '---';
+
+            const moodKeys = [['happy','happy'], ['moved','moved'], ['sad','sad'], ['dumb','dumb']];
+            moodKeys.forEach(([key, type]) => {
+                const txt = document.getElementById(`mood-${key}-txt`).value;
+                const img = imageData[`mood-${key}-data`];
+                document.getElementById(`out-mood-${type}-txt`).innerText = txt || '';
+                const imgEl = document.getElementById(`out-mood-${type}-img`);
+                if(img) { imgEl.src = img; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
+            });
+
+            // 行程
+            const eventGroups = document.querySelectorAll('#container-events .input-group');
+            let eventList = [];
+            eventGroups.forEach(group => {
+                const id = group.id.replace('in-event-', '');
+                const dStart = group.querySelector('.ev-date-start').value;
+                const dEnd = group.querySelector('.ev-date-end').value;
+                const title = group.querySelector('.ev-title').value;
+                const desc = group.querySelector('.ev-desc').value;
+                const imgKey = `event-img-${id}`;
+                if(dStart || title) { eventList.push({ dStart, dEnd, title, desc, img: imageData[imgKey] }); }
+            });
+            eventList.sort((a, b) => new Date(a.dStart) - new Date(b.dStart));
+            
+            const count = eventList.length;
+            const quoteEl = document.getElementById('out-quote');
+            if(count === 0) quoteEl.innerText = "“遥远的爱是最安静的陪伴”";
+            else if(count <= 2) quoteEl.innerText = "“每一次相见，都是这一年最盛大的节日”";
+            else quoteEl.innerText = "“明年也要继续，更多地相见吧”";
+
+            const evContainer = document.getElementById('out-events');
+            document.getElementById('section-events').style.display = count > 0 ? 'block' : 'none';
+            evContainer.innerHTML = eventList.map(ev => {
+                let dateDisplay = ev.dStart || 'TBD';
+                let isRange = false;
+                const fmt = (d) => d.substring(5).replace('-','.');
+                if (ev.dEnd && ev.dEnd !== ev.dStart) { dateDisplay = `${fmt(ev.dStart)} - ${fmt(ev.dEnd)}`; isRange = true; } 
+                else if (ev.dStart) { dateDisplay = fmt(ev.dStart); }
+                return `<div class="event-item ${isRange ? 'is-range' : ''}"><div class="event-date">${dateDisplay}</div><div class="event-title">${ev.title}</div><div class="event-desc">${ev.desc}</div>${ev.img ? `<img src="${ev.img}" class="event-img" style="display:block">` : ''}</div>`;
+            }).join('');
+
+            // 产出
+            const workGroups = document.querySelectorAll('#container-works .input-group');
+            const wkContainer = document.getElementById('out-works');
+            document.getElementById('section-works').style.display = workGroups.length > 0 ? 'block' : 'none';
+            let wkHtml = '';
+            workGroups.forEach(group => {
+                const id = group.id.replace('in-work-', '');
+                const title = group.querySelector('.wk-title').value;
+                const content = group.querySelector('.wk-content').value;
+                const desc = group.querySelector('.wk-desc').value;
+                const img = imageData[`work-img-${id}`];
+                let mainContent = img ? `<img src="${img}" class="work-img" style="display:block">` : (content ? `<div class="work-text-card"><div class="work-text-card-line"></div>${content}</div>` : '');
+                wkHtml += `<div class="work-item">${mainContent}<div class="work-title">${title}</div><div class="work-desc">${desc}</div></div>`;
+            });
+            wkContainer.innerHTML = wkHtml;
+
+            // 周边
+            const merchGroups = document.querySelectorAll('#container-merch .input-group');
+            const mcContainer = document.getElementById('out-merch');
+            document.getElementById('section-merch').style.display = merchGroups.length > 0 ? 'block' : 'none';
+            let mcHtml = '';
+            merchGroups.forEach(group => {
+                const id = group.id.replace('in-merch-', '');
+                const name = group.querySelector('.mc-name').value;
+                const desc = group.querySelector('.mc-desc').value;
+                const img = imageData[`merch-img-${id}`];
+                mcHtml += `<div class="merch-item">${img ? `<img src="${img}" class="merch-img" style="display:block">` : ''}<div class="merch-info"><div class="merch-name">${name}</div><div class="merch-comment">${desc}</div></div></div>`;
+            });
+            mcContainer.innerHTML = mcHtml;
+        }
+
+        async function generateAndShow() {
+            renderAll();
+            document.getElementById('loading').style.display = 'flex';
+            await new Promise(r => setTimeout(r, 100));
+
+            const element = document.getElementById("final-card");
+            const container = document.getElementById("modal-img-container");
+            container.innerHTML = '';
+
+            try {
+                const canvas = await html2canvas(element, {
+                    scale: 2,
+                    backgroundColor: "#ffffff",
+                    useCORS: true
+                });
+
+                const totalHeight = canvas.height;
+                const singlePageLimit = 5000;
+
+                if (totalHeight <= singlePageLimit) {
+                    const img = new Image();
+                    img.src = canvas.toDataURL("image/png");
+                    container.appendChild(img);
+                } else {
+                    let currentY = 0;
+                    const pageHeight = 4000;
+                    while (currentY < totalHeight) {
+                        let sliceHeight = Math.min(pageHeight, totalHeight - currentY);
+                        const pCanvas = document.createElement('canvas');
+                        pCanvas.width = canvas.width;
+                        pCanvas.height = sliceHeight;
+                        const ctx = pCanvas.getContext('2d');
+                        ctx.drawImage(canvas, 0, currentY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+                        
+                        const img = new Image();
+                        img.src = pCanvas.toDataURL("image/png");
+                        img.style.marginBottom = "10px";
+                        container.appendChild(img);
+                        
+                        currentY += sliceHeight;
+                    }
+                }
+                document.getElementById('result-modal').style.display = 'flex';
+            } catch (err) {
+                alert("生成失败：" + err);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = 'none';
+        }
+        
+        renderAll();
+    </script>
+</body>
+</html>
